@@ -1,4 +1,5 @@
 import requests
+import time
 import os
 
 # ================= НАСТРОЙКИ =================
@@ -7,25 +8,11 @@ VK_GROUP_ID = os.environ.get('VK_GROUP_ID')
 TG_BOT_TOKEN = os.environ.get('TG_BOT_TOKEN')
 TG_CHANNEL_ID = os.environ.get('TG_CHANNEL_ID')
 MAX_VIDEO_SEC = 60
-STATE_FILE = "last_id.txt"
 # =============================================
 
 VK_WALL = "https://api.vk.com/method/wall.get"
 VK_VIDEO = "https://api.vk.com/method/video.get"
 TG_API = f"https://api.telegram.org/bot{TG_BOT_TOKEN}"
-
-def get_saved_id():
-    if os.path.exists(STATE_FILE):
-        try:
-            with open(STATE_FILE, "r") as f:
-                return int(f.read().strip())
-        except:
-            return 0
-    return 0
-
-def save_id(post_id):
-    with open(STATE_FILE, "w") as f:
-        f.write(str(post_id))
 
 def get_video_url(owner_id, vid_id, access_key=""):
     params = {"videos": f"{owner_id}_{vid_id}{access_key}", "access_token": VK_TOKEN, "v": "5.131"}
@@ -76,32 +63,28 @@ def process_post(post):
     return caption, None, None
 
 def main():
-    last_id = get_saved_id()
-    print(f"💾 Запомненный ID: {last_id}")
-
-    params = {"owner_id": VK_GROUP_ID, "count": 5, "access_token": VK_TOKEN, "v": "5.131"}
+    current_time = int(time.time())
+    params = {"owner_id": VK_GROUP_ID, "count": 10, "access_token": VK_TOKEN, "v": "5.131"}
     r = requests.get(VK_WALL, params=params).json()
     posts = r.get("response", {}).get("items", [])
     
-    new_posts_found = False
+    print(f"⏰ Текущее время: {time.strftime('%H:%M:%S')}")
     
-    # Проверяем посты (от старых к новым)
     for post in reversed(posts):
-        if post["id"] > last_id:
-            new_posts_found = True
-            print(f"📥 Нашел новый пост #{post['id']}")
+        post_time = post["date"]
+        age_seconds = current_time - post_time
+        
+        if age_seconds < 900:
+            print(f"📥 Свежий пост #{post['id']} (возраст: {age_seconds} сек)")
             text, photo, video = process_post(post)
             res = send_to_telegram(text, photo, video)
             
             if res and res.get("ok"):
-                print("✅ Отправлено!")
-                save_id(post["id"]) # Сохраняем ID в файл
-                last_id = post["id"] # Обновляем переменную
+                print("✅ Отправлено в Telegram!")
             else:
-                print(f"⚠️ Ошибка отправки: {res}")
-    
-    if not new_posts_found:
-        print("ℹ️ Новых постов нет.")
+                print(f"⚠️ Ошибка: {res}")
+        else:
+            print(f"⏭️ Пост #{post['id']} старше 15 мин, пропускаем.")
 
 if __name__ == "__main__":
     main()
