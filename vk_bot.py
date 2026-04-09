@@ -2,13 +2,11 @@ import requests
 import time
 import os
 
-# ================= НАСТРОЙКИ =================
 VK_TOKEN = os.environ.get('VK_TOKEN')
 VK_GROUP_ID = os.environ.get('VK_GROUP_ID')
 TG_BOT_TOKEN = os.environ.get('TG_BOT_TOKEN')
 TG_CHANNEL_ID = os.environ.get('TG_CHANNEL_ID')
 MAX_VIDEO_SEC = 60
-# =============================================
 
 VK_WALL = "https://api.vk.com/method/wall.get"
 VK_VIDEO = "https://api.vk.com/method/video.get"
@@ -68,23 +66,20 @@ def main():
     r = requests.get(VK_WALL, params=params).json()
     posts = r.get("response", {}).get("items", [])
     
-    print(f"⏰ Текущее время: {time.strftime('%H:%M:%S')}")
+    print(f"⏰ Время: {time.strftime('%H:%M:%S')}")
     
     for post in reversed(posts):
         post_time = post["date"]
-        age_seconds = current_time - post_time
+        age = current_time - post_time
         
-        if age_seconds < 900:
-            print(f"📥 Свежий пост #{post['id']} (возраст: {age_seconds} сек)")
+        if age < 900:
+            print(f"📥 Пост #{post['id']} ({age} сек)")
             text, photo, video = process_post(post)
             res = send_to_telegram(text, photo, video)
-            
             if res and res.get("ok"):
-                print("✅ Отправлено в Telegram!")
-            else:
-                print(f"⚠️ Ошибка: {res}")
+                print("✅ Отправлено!")
         else:
-            print(f"⏭️ Пост #{post['id']} старше 15 мин, пропускаем.")
+            print(f"⏭️ Старый пост #{post['id']}")
 
 if __name__ == "__main__":
     main()
