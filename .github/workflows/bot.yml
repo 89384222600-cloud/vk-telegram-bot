@@ -9,30 +9,19 @@ jobs:
   run-bot:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
       
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install requests
+        run: pip install requests
       
-      - name: Run bot
+      - name: Run Bot
+        continue-on-error: true
         env:
           VK_TOKEN: ${{ secrets.VK_TOKEN }}
           VK_GROUP_ID: ${{ secrets.VK_GROUP_ID }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHANNEL_ID: ${{ secrets.TG_CHANNEL_ID }}
         run: python vk_bot.py
-
-      - name: Save ID to GitHub
-        run: |
-          git config user.name "AutoBot"
-          git config user.email "bot@github.com"
-          git add last_id.txt
-          git diff --quiet && echo "No changes" || (git commit -m "Update ID" && git push)
