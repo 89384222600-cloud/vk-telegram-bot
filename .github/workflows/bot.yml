@@ -1,4 +1,4 @@
-name: VK to Telegram Bot
+name: VK Telegram Bot
 
 on:
   schedule:
@@ -9,19 +9,14 @@ jobs:
   run-bot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
-      
-      - name: Install requests
-        run: pip install requests
-      
-      - name: Run Bot
-        continue-on-error: true
+          python-version: '3.11'
+      - run: pip install requests
+      - run: python vk_bot.py
         env:
           VK_TOKEN: ${{ secrets.VK_TOKEN }}
           VK_GROUP_ID: ${{ secrets.VK_GROUP_ID }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHANNEL_ID: ${{ secrets.TG_CHANNEL_ID }}
-        run: python vk_bot.py
