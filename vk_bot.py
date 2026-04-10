@@ -20,7 +20,7 @@ def main():
             pid = post['id']
             age = now - post['date']
 
-            if age < 1200:
+            if age < 3600:
                 text = (post.get('text') or '')[:1000]
                 link = f"https://vk.com/wall{VK_GROUP_ID}_{pid}"
                 caption = f"{text}\n\n🔗 <a href='{link}'>Источник</a>" if text else f"🔗 <a href='{link}'>Пост ВК</a>"
