@@ -1,0 +1,18 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  touch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo "$(date)" > heartbeat.txt
+          git config user.name "Bot"
+          git config user.email "bot@github.com"
+          git add heartbeat.txt
+          git commit -m "Keep alive" || echo "No changes"
+          git push
